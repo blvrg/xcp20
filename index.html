@@ -103,6 +103,14 @@
     document.getElementById('dispenser-form').addEventListener('submit', function(event) {
       event.preventDefault(); // Prevent the page from reloading
       const dispenserType = document.getElementById('dispenser-input').value;
+
+      // Update the h1 heading
+      const dispenserName = document.getElementById('dispenser-heading');
+      dispenserName.textContent = `${dispenserType.toUpperCase()} Dispensers`;
+
+      // Update the URL without reloading the page
+      window.history.pushState(null, '', `?${dispenserType}`);
+
       getDispensers(dispenserType); // Fetch and display dispensers sorted by Satoshi Price by default
     });
 
