@@ -3,7 +3,7 @@
 <head>
     <title>XCP-20 Dispensers</title>
     <style>
-        body {width: 60%; margin: 0 auto}
+        body {width: 60%; margin: 0 auto; text-align: center}
         #dispenser-list {margin-top: 20px}
         .header span {font-weight:bold}
         .dispenser {margin-bottom: 10px}
@@ -17,126 +17,124 @@
         <form id="dispenser-form">
             <input type="text" id="dispenser-input" placeholder="XCP-20 Token Name">
             <select id="sort-input">
-                <option value="satoshi_price">Sort by Satoshi Price</option>
-                <option value="pricePerToken">Sort by Price per Token</option>
+                <option value="satoshi_price">Sort by Dispense Price</option>
+                <option value="pricePerToken">Sort by Token Price</option>
             </select>
             <input type="submit" value="Submit">
         </form>
     </div>
     <div id="dispenser-list">
     </div>
-
     <script>
-    let dispensers = [];
+      let dispensers = [];
 
-    function getDispensers(dispenserType) {
-      // Reset the dispensers array
-      dispensers = [];
+      function getDispensers(dispenserType) {
+        // Reset the dispensers array
+        dispensers = [];
 
-      fetch(`https://xchain.io/api/dispensers/${dispenserType}`)
-        .then(response => response.json())
-        .then(data => {
-          // Store data locally
-          dispensers = data.data.filter(dispenser => dispenser.status === '0');
+        fetch(`https://xchain.io/api/dispensers/${dispenserType}`)
+          .then(response => response.json())
+          .then(data => {
+            // Store data locally
+            dispensers = data.data.filter(dispenser => dispenser.status === '0');
 
-          // Calculate the price per token for each dispenser
-          dispensers.forEach(dispenser => {
-              dispenser.pricePerToken = parseFloat(dispenser.satoshi_price) / parseFloat(dispenser.give_quantity);
+            // Calculate the price per token for each dispenser
+            dispensers.forEach(dispenser => {
+                dispenser.pricePerToken = parseFloat(dispenser.satoshi_price) / parseFloat(dispenser.give_quantity);
+            });
+
+            // Now update the UI
+            updateDispensers('satoshi_price');
+          })
+          .catch(error => {
+            console.error('Failed to retrieve dispensers:', error);
           });
+      }
 
-          // Now update the UI
-          updateDispensers('satoshi_price');
-        })
-        .catch(error => {
-          console.error('Failed to retrieve dispensers:', error);
-        });
-    }
+      function updateDispensers(sortBy) {
+        // Clear the current dispenser list
+        const dispenserList = document.getElementById('dispenser-list');
+        dispenserList.innerHTML = '';
 
-    function updateDispensers(sortBy) {
-      // Clear the current dispenser list
-      const dispenserList = document.getElementById('dispenser-list');
-      dispenserList.innerHTML = '';
-
-      // Add headers
-      const headerElement = document.createElement('div');
-      headerElement.classList.add('dispenser', 'header');
-      headerElement.innerHTML = `
-          <span>Satoshi Price</span>
-          <span>Price per Token</span>
-          <span>Escrow Quantity</span>
-          <span>Give Quantity</span>
-          <span>Give Remaining</span>
-          <span>Transaction Hash</span>
-      `;
-      dispenserList.appendChild(headerElement);
-
-      // Sort the dispensers based on the selected sort field
-      const sortedDispensers = dispensers.sort((a, b) => parseFloat(a[sortBy]) - parseFloat(b[sortBy]));
-
-      // Build the HTML for displaying the sorted dispensers
-      sortedDispensers.forEach(dispenser => {
-        // Cut off decimal places if all zeroes
-        const escrowQuantity = parseFloat(dispenser.escrow_quantity);
-        const giveQuantity = parseFloat(dispenser.give_quantity);
-        const giveRemaining = parseFloat(dispenser.give_remaining);
-        const escrowDisplay = escrowQuantity % 1 === 0 ? escrowQuantity.toFixed(0) : escrowQuantity.toFixed(8);
-        const giveQuantityDisplay = giveQuantity % 1 === 0 ? giveQuantity.toFixed(0) : giveQuantity.toFixed(8);
-        const giveRemainingDisplay = giveRemaining % 1 === 0 ? giveRemaining.toFixed(0) : giveRemaining.toFixed(8);
-        // Build the transaction hash link
-        const txHashLink = `https://xchain.io/tx/${dispenser.tx_hash}`;
-        // Create a dispenser element
-        const dispenserElement = document.createElement('div');
-        dispenserElement.classList.add('dispenser');
-        dispenserElement.innerHTML = `
-            <span>${dispenser.satoshi_price}</span>
-            <span>${dispenser.pricePerToken.toFixed(8)}</span>
-            <span>${escrowDisplay}</span>
-            <span>${giveQuantityDisplay}</span>
-            <span>${giveRemainingDisplay}</span>
-            <span><a href="${txHashLink}" target="_blank">${dispenser.tx_hash}</a></span>
+        // Add headers
+        const headerElement = document.createElement('div');
+        headerElement.classList.add('dispenser', 'header');
+        headerElement.innerHTML = `
+            <span>Per Dispense</span>
+            <span>Per Token</span>
+            <span>Escrow Quantity</span>
+            <span>Give Quantity</span>
+            <span>Give Remaining</span>
+            <span>Dispenser</span>
         `;
-        dispenserList.appendChild(dispenserElement);
-      });
-    }
+        dispenserList.appendChild(headerElement);
 
-    // Event listeners
-    document.getElementById('dispenser-form').addEventListener('submit', function(event) {
-      event.preventDefault(); // Prevent the page from reloading
-      const dispenserType = document.getElementById('dispenser-input').value;
+        // Sort the dispensers based on the selected sort field
+        const sortedDispensers = dispensers.sort((a, b) => parseFloat(a[sortBy]) - parseFloat(b[sortBy]));
 
-      // Update the h1 heading
-      const dispenserName = document.getElementById('dispenser-heading');
-      dispenserName.textContent = `${dispenserType.toUpperCase()} Dispensers`;
+        // Build the HTML for displaying the sorted dispensers
+        sortedDispensers.forEach(dispenser => {
+          // Cut off decimal places if all zeroes
+          const escrowQuantity = parseFloat(dispenser.escrow_quantity);
+          const giveQuantity = parseFloat(dispenser.give_quantity);
+          const giveRemaining = parseFloat(dispenser.give_remaining);
+          const escrowDisplay = escrowQuantity % 1 === 0 ? escrowQuantity.toFixed(0) : escrowQuantity.toFixed(8);
+          const giveQuantityDisplay = giveQuantity % 1 === 0 ? giveQuantity.toFixed(0) : giveQuantity.toFixed(8);
+          const giveRemainingDisplay = giveRemaining % 1 === 0 ? giveRemaining.toFixed(0) : giveRemaining.toFixed(8);
+          // Build the transaction hash link
+          const txHashLink = `https://xchain.io/tx/${dispenser.tx_hash}`;
+          // Create a dispenser element
+          const dispenserElement = document.createElement('div');
+          dispenserElement.classList.add('dispenser');
+          dispenserElement.innerHTML = `
+              <span>${dispenser.satoshi_price}</span>
+              <span>${dispenser.pricePerToken.toFixed(8)}</span>
+              <span>${escrowDisplay}</span>
+              <span>${giveQuantityDisplay}</span>
+              <span>${giveRemainingDisplay}</span>
+              <span><a href="${txHashLink}" target="_blank">LINK 🔗</a></span>
+          `;
+          dispenserList.appendChild(dispenserElement);
+        });
+      }
 
-      // Update the URL without reloading the page
-      window.history.pushState(null, '', `?token=${dispenserType}`);
+      // Event listeners
+      document.getElementById('dispenser-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent the page from reloading
+        const dispenserType = document.getElementById('dispenser-input').value;
 
-      getDispensers(dispenserType); // Fetch and display dispensers sorted by Satoshi Price by default
-    });
-
-    document.getElementById('sort-input').addEventListener('change', function(event) {
-      const sortBy = event.target.value;
-      updateDispensers(sortBy); // Re-sort and display the dispensers
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      let dispenserType = urlParams.get('token');
-
-      if (dispenserType) {
-        // If the token exists in the URL, update the heading and URL
+        // Update the h1 heading
         const dispenserName = document.getElementById('dispenser-heading');
         dispenserName.textContent = `${dispenserType.toUpperCase()} Dispensers`;
 
-        window.history.replaceState(null, '', `?token=${dispenserType}`);
-      } else {
-        // If there is no token in the URL, use the first parameter as dispenserType
-        dispenserType = Array.from(urlParams.keys())[0];
-      }
+        // Update the URL without reloading the page
+        window.history.pushState(null, '', `?${dispenserType}`);
 
-      getDispensers(dispenserType); // Fetch and display dispensers sorted by Satoshi Price by default
-    });
+        getDispensers(dispenserType); // Fetch and display dispensers sorted by Satoshi Price by default
+      });
 
+      document.getElementById('sort-input').addEventListener('change', function(event) {
+        const sortBy = event.target.value;
+        updateDispensers(sortBy); // Re-sort and display the dispensers
+      });
+      document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let dispenserType = urlParams.get('token');
+
+        if (!dispenserType) {
+          // If there is no 'token' in the URL, use the first parameter as dispenserType
+          dispenserType = Array.from(urlParams.keys())[0];
+        }
+
+        if (dispenserType) {
+          // If a dispenserType was found, update the heading and URL
+          const dispenserName = document.getElementById('dispenser-heading');
+          dispenserName.textContent = `${dispenserType.toUpperCase()} Dispensers`;
+
+          window.history.replaceState(null, '', `?${dispenserType}`);
+          getDispensers(dispenserType); // Fetch and display dispensers sorted by Satoshi Price by default
+        }
+      });
     </script>
 </body>
 </html>
