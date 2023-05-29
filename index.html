@@ -109,7 +109,7 @@
       dispenserName.textContent = `${dispenserType.toUpperCase()} Dispensers`;
 
       // Update the URL without reloading the page
-      window.history.pushState(null, '', `?${dispenserType}`);
+      window.history.pushState(null, '', `?token=${dispenserType}`);
 
       getDispensers(dispenserType); // Fetch and display dispensers sorted by Satoshi Price by default
     });
@@ -119,11 +119,23 @@
       updateDispensers(sortBy); // Re-sort and display the dispensers
     });
 
-    window.onload = function() {
+    document.addEventListener('DOMContentLoaded', function() {
       const urlParams = new URLSearchParams(window.location.search);
-      const dispenserType = urlParams.get('example') || Array.from(urlParams.keys())[0];
+      let dispenserType = urlParams.get('token');
+
+      if (dispenserType) {
+        // If the token exists in the URL, update the heading and URL
+        const dispenserName = document.getElementById('dispenser-heading');
+        dispenserName.textContent = `${dispenserType.toUpperCase()} Dispensers`;
+
+        window.history.replaceState(null, '', `?token=${dispenserType}`);
+      } else {
+        // If there is no token in the URL, use the first parameter as dispenserType
+        dispenserType = Array.from(urlParams.keys())[0];
+      }
+
       getDispensers(dispenserType); // Fetch and display dispensers sorted by Satoshi Price by default
-    };
+    });
 
     </script>
 </body>
