@@ -9,6 +9,8 @@
         .dispenser {margin-bottom: 10px}
         .dispenser span {display: inline-block; width: 200px}
         #header {display: flex; justify-content: space-between; align-items: center}
+        a:link, a:visited {text-decoration: none}
+        a:hover, a:active {text-decoration: underline}
     </style>
 </head>
 <body>
@@ -92,7 +94,7 @@
               <span>${escrowDisplay}</span>
               <span>${giveQuantityDisplay}</span>
               <span>${giveRemainingDisplay}</span>
-              <span><a href="${txHashLink}" target="_blank">LINK 🔗</a></span>
+              <span><a href="${txHashLink}" target="_blank">🔗 LINK</a></span>
           `;
           dispenserList.appendChild(dispenserElement);
         });
